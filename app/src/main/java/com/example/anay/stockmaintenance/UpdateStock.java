@@ -53,6 +53,10 @@ public class UpdateStock extends AppCompatActivity {
                 {
                     Toast.makeText(UpdateStock.this, "Fields Cannot be empty", Toast.LENGTH_SHORT).show();
                 }
+                else if(!Digit(quantity))
+                {
+                    Toast.makeText(UpdateStock.this, "Quantity must be an Integer", Toast.LENGTH_SHORT).show();
+                }
                 else
                 {
                     boolean added=false;
@@ -116,5 +120,18 @@ public class UpdateStock extends AppCompatActivity {
         }
         file.delete();
         return stocklist;
+    }
+    public boolean Digit(String quantity)
+    {
+        boolean check=true;
+        for(int i=0;i<quantity.length();i++)
+        {
+            if(!Character.isDigit(quantity.charAt(i)))
+            {
+                check=false;
+                break;
+            }
+        }
+        return check;
     }
 }
