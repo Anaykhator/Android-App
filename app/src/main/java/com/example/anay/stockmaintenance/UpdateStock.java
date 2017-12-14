@@ -10,22 +10,27 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class UpdateStock extends AppCompatActivity {
 
     Button update;
     EditText itemnameid,itemquantityid;
     String name,quantity;
+    static ArrayList<ItemModel> stocklist = new ArrayList<>();
     //SharedPreferences auth_sharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_stock);
-
+        stocklist=readFromFile();
         itemnameid=(EditText)findViewById(R.id.itemname);
         itemquantityid=(EditText)findViewById(R.id.itemquantity);
         update=(Button)findViewById(R.id.update);
@@ -50,9 +55,25 @@ public class UpdateStock extends AppCompatActivity {
                 }
                 else
                 {
+                    boolean added=false;
                     ItemModel item = new ItemModel(name, quantity);
-                    NoteAdapter.itemlist.add(item);
-                    writeToFile(item);
+                    try{
+                        NoteAdapter.itemlist.add(item);
+                    }
+                    catch(Exception e){}
+                    Iterator<ItemModel> i=stocklist.iterator();
+                    while(i.hasNext())
+                    {
+                        ItemModel o=i.next();
+                        if(o.name.equalsIgnoreCase(item.name))
+                        {
+                            added=true;
+                            o.quantity=Integer.toString(Integer.parseInt(item.quantity)+Integer.parseInt(o.quantity));
+                        }
+                        writeToFile(o);
+                    }
+                    if(!added)
+                      writeToFile(item);
                     Intent intent = new Intent(UpdateStock.this, CheckQuantity.class);
                     intent.putExtra(getString(R.string.key_name), name);
                     intent.putExtra(getString(R.string.key_quantity), quantity);
@@ -77,5 +98,23 @@ public class UpdateStock extends AppCompatActivity {
             e.getMessage();
         }
     }
-
+    public ArrayList<ItemModel> readFromFile(){
+        String filename="Stock.txt";
+        File file=new File(getApplicationContext().getFilesDir(),filename);
+        ArrayList<ItemModel> stocklist = new ArrayList<>();
+        Gson gson=new Gson();
+        try{
+            String line;
+            BufferedReader br=new BufferedReader(new FileReader(file));
+            while((line=br.readLine())!=null){
+                ItemModel item=gson.fromJson(line,ItemModel.class);
+                stocklist.add(item);
+            }
+            br.close();
+        }catch (Exception e){
+            e.getMessage();
+        }
+        file.delete();
+        return stocklist;
+    }
 }
